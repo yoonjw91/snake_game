@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello</title>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script
+        src="https://code.jquery.com/jquery-2.2.4.min.js"
+        integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+        crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        var snake_position = [];
+        var snake_body = [];
+        var snake_head = null;
+        var init_direction = "right";
+        var change_direction = "right";
+        var distance = 25;
+        var playing_time = 0;
+        var food = [];
+        var status = false;
+        
+        $(document).ready(function(){
+            var head = $('<div />').css({position: "absolute", border: "1px solid red", width: "23px", height: "23px"});
+            snake_body.push({html: head.clone(true).css({"background-color": "black"})});
+            snake_position.push({x:3, y:0});
+            snake_body.push({html: head.clone(true)});
+            snake_position.push({x:2, y:0});
+            snake_body.push({html: head.clone(true)});
+            snake_position.push({x:1, y:0});
+
+            /*snake_position.forEach(function(value){
+                // console.log(value.x +"/"+value.y);
+                $('#map').append(value.html.css({"top": value.y*distance, "left": value.x*distance}));
+            });*/
+
+            for(var i = 0; i < snake_position.length; i++){
+                $('#map').append(snake_body[i].html.css({"top": snake_position[i].y*distance, "left": snake_position[i].x*distance}));
+            }
+
+            var pray = $('<div />').css({position: "absolute", border: "1px solid black", width: "23px", height: "23px", backgroundColor: "black"});
+
+            food.push({html: pray.clone(true), position:{x:Math.floor((Math.random() * 30)), y:Math.floor((Math.random() * 30))}});
+            
+            var repeat_flag = false;
+            while(true){
+                for(var i = 0; i < snake_position.length; i++){
+                    if(food[0].position.x == snake_position[i].x && food[0].position.y == snake_position[i].y){
+                        food[0].position.x = Math.floor((Math.random() * 30));
+                        food[0].position.y = Math.floor((Math.random() * 30));
+                        
+                        repeat_flag = true;
+                        break;
+                    }
+                }
+
+                if(eval(repeat_flag)) break;
+            }
+
+            $('#map').append(food[0].html.css({"top": food[0].position.y*distance, "left": food[0].position.x*distance}));
+
+
+
+
+            $(document).on("keydown", function(e){// left: 37, up: 38, right: 39, down: 40;
+                if(e.keyCode == 37){
+                    change_direction = "left";
+                }else if(e.keyCode == 39){
+                    change_direction = "right";
+                }else if(e.keyCode == 40){
+                    change_direction = "bottom";
+                }else if(e.keyCode == 38){
+                    change_direction = "top";
+                }
+                // check_status(status, init_direction, change_direction);
+                console.log(change_direction);
+            });
+
+            var snake = setInterval(function(){
+                if(init_direction != change_direction){
+                    switch(init_direction){
+                        case "top":
+                            // if(change == "bottom") status = true;
+                            if(change_direction == "bottom") change_direction = "top";
+                            break;
+                        case "bottom":
+                            // if(change == "top") status = true;
+                            if(change_direction == "top") change_direction = "bottom";
+                            break;
+                        case "left":
+                            // if(change == "right") status = true;
+                            if(change_direction == "right") change_direction = "left";
+                            break;
+                        case "right":
+                            // if(change == "left") status = true;
+                            if(change_direction == "left") change_direction = "right";
+                            break;
+                    }
+                }
+
+                var movement = 1;
+
+                if(change_direction == "left" || change_direction == "top"){
+                    movement = -1;
+                }
+
+                for(var index = snake_position.length-1; index > -1; index--){
+                    if(index == 0){
+                        if(change_direction == "top" || change_direction == "bottom"){
+                            snake_position[index].y = snake_position[index].y + movement;
+                        }
+                        else if(change_direction == "left" || change_direction == "right"){
+                            snake_position[index].x = snake_position[index].x + movement;
+                        }
+                        
+                    }else{
+                        var tail = snake_position[index];
+                        var prev_position = snake_position[index-1];
+
+                        tail.x = prev_position.x;
+                        tail.y = prev_position.y;
+                    }
+                }
+
+                var head_position = snake_position[0];
+                status = check_status(head_position);
+
+                if(playing_time > 0 && (playing_time % 3) == 0){
+                    var last_tail = snake_position[snake_position.length - 1];
+                    var new_tail = $('<div />').css({position: "absolute", border: "1px solid red", width: "23px", height: "23px"});
+
+                    snake_body.push({html:new_tail.clone(true)});
+                    snake_position.push({x: last_tail.x, y:last_tail.y});
+
+                    var index = snake_position.length - 1;
+                    var added_tail_body = snake_body[index];
+                    var added_tail_position = snake_position[index];
+                    $('#map').append(added_tail_body.html.css({"top": added_tail_position.y*distance, "left": added_tail_position.x*distance}));
+                }
+
+                if(eval(status)){
+                    for(var i = snake_position.length - 1; i  > -1; i--){
+                        snake_body[i].html.css({"top": snake_position[i].y*distance, "left": snake_position[i].x*distance});
+                    }
+
+                    init_direction = change_direction;
+                    playing_time += 0.5;
+                    
+                    console.log(snake_position[0].x +"."+snake_position[0].y);
+                }else{
+                    var user_pick = confirm('Game Over\nWanna try again?');
+                    if (user_pick == true) {
+                        location.href = './snake.html';
+                    }
+                }
+
+                
+                
+            }, 500);
+
+            function check_status(head_position){
+                /*if(init != change){
+                    switch(init){
+                        case "top":
+                            // if(change == "bottom") status = true;
+                            if(change == "bottom") change = "top";
+                            break;
+                        case "bottom":
+                            // if(change == "top") status = true;
+                            if(change == "top") change = "bottom";
+                            break;
+                        case "left":
+                            // if(change == "right") status = true;
+                            if(change == "right") change = "left";
+                            break;
+                        case "right":
+                            // if(change == "left") status = true;
+                            if(change == "left") change = "right";
+                            break;
+                    }
+                }*/
+
+                if(head_position.x < 0 || head_position.y < 0 || head_position.x > 29 || head_position.y > 29){
+                    clearInterval(snake);
+                    return false;
+                }
+
+                for(var i = 1; i < snake_position.length; i++){
+                    if(head_position.x === snake_position[i].x && head_position.y === snake_position[i].y){
+                        clearInterval(snake);
+                        return false;
+                    }
+                }
+
+                return true;
+
+                /*if(status == true){
+                    clearInterval(snake);
+                    // location.href = './snake.html';
+                }*/
+            }
+
+        });
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <nav class="navbar navbar-default">
+              <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                  <a class="navbar-brand" href="#">Brand</a>
+                </div>
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                  <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+                    <li><a href="#">Link</a></li>
+                  </ul>
+
+                </div><!-- /.navbar-collapse -->
+              </div><!-- /.container-fluid -->
+            </nav>
+        </div>
+        
+        <div class="content">
+            <div class="row">
+                <div class="col-md-8">
+                    <div id="map" style="border:2.5px solid #000; height: 750px; position: relative;"></div>
+                </div>
+                <div class="col-md-4"></div>
+            </div>
+        </div>
+        <div class="footer"></div> 
+    </div>   
+</body>
+</html>
