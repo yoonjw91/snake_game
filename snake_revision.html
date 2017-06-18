@@ -18,10 +18,68 @@
             change_direction : "right",
             distance : 25,
             movement : 1,
-            playing_time : 0,
+            stopwatch : null,
             moving_snake : null,
             status : true,
             score : 0,
+            min : 0,
+            sec : 0,
+            ms : 0,
+            interval : 500,
+            set_map : function(){
+                var snake = this.snake;
+                var init_direction = this.init_direction;
+                var change_direction = this.change_direction;
+                var distance = this.distance;
+
+                snake.push({html: this.head, position : {x: 3, y: 0}});
+                snake.push({html: this.tail.clone(true), position : {x: 2, y: 0}});
+                snake.push({html: this.tail.clone(true), position : {x: 1, y: 0}});
+
+                for(var i = 0; i < snake.length; i++){
+                    $('#map').append(snake[i].html.css({'top': snake[i].position.y * distance, 'left' : snake[i].position.x * distance}));
+                }
+            },
+            reset_map : function(){
+                $('#map').empty();
+                this.snake.splice(0,this.snake.length);
+                this.set_map();
+                this.make_food();
+                this.status = true;
+                this.score = 0;
+                $('.game_score').text(this.score);
+            },
+            set_time : function(){
+                var time = "";
+
+                this.stopwatch = setInterval(function(){
+                    snake_module.ms++;
+
+                    if(snake_module.ms >= 100){
+                        snake_module.sec++;
+                        snake_module.ms = 0;
+                        if(snake_module.sec >= 60){
+                            snake_module.min++;
+                            snake_module.sec = 0;
+                        }
+                    }
+
+                    time = (snake_module.min > 9 ? snake_module.min : "0" + snake_module.min) + ":" 
+                            + (snake_module.sec > 9 ? snake_module.sec : "0" + snake_module.sec) + ":" 
+                            + (snake_module.ms > 9 ? snake_module.ms : "0" + snake_module.ms);
+
+                    $('.stopwatch').text(time);
+                },10);
+
+            },
+            stop_time : function(){
+                clearInterval(this.stopwatch);
+            },
+            reset_time : function(){
+                clearInterval(this.stopwatch);
+                $('.stopwatch').text("00:00:00");
+                this.ms = 0; this.sec = 0; this.min = 0;
+            },
             init_game : function(){
                 var snake = this.snake;
                 var init_direction = this.init_direction;
@@ -55,16 +113,16 @@
                         }
                     }else{
                         clearInterval(snake_module.moving_snake);
+                        snake_module.stop_time();
                         var user_pick = confirm('Game Over\nWanna try again?');
                         if (user_pick == true) {
-                            location.href = './snake_revision.html';
-                            $('#map').empty();
-                            snake_module.status = false;
+                            snake_module.reset_map();
+                            snake_module.reset_time();
                         }
                     }
 
                     init_direction = change_direction;
-                }, 500);
+                }, this.interval);
 
             },
             check_direction : function(init_direction, change_direction){
@@ -182,39 +240,25 @@
         }
 
         $(document).ready(function(){
-            var snake = snake_module.snake;
-            var init_direction = snake_module.init_direction;
-            var change_direction = snake_module.change_direction;
-            var distance = snake_module.distance;
-
-            snake.push({html: snake_module.head, position : {x: 3, y: 0}});
-            snake.push({html: snake_module.tail.clone(true), position : {x: 2, y: 0}});
-            snake.push({html: snake_module.tail.clone(true), position : {x: 1, y: 0}});
-
-            for(var i = 0; i < snake.length; i++){
-                $('#map').append(snake[i].html.css({'top': snake[i].position.y * distance, 'left' : snake[i].position.x * distance}));
-            }
-
+            snake_module.set_map();
             snake_module.make_food();
             $('.game_score').text(snake_module.score);
+            $('.stopwatch').text("00:00:00");
 
             $('.startBtn').on('click', function(){
                 var user_pick = confirm('게임을 시작하시겠습니까?');
                 if(user_pick == true){
                     snake_module.init_game();
+                    snake_module.set_time();
                 }
             });
 
             $('.pauseBtn').on('click', function(){
-                console.log('check');
-                //snake_module.status = false;
                 clearInterval(snake_module.moving_snake);
+                clearInterval(snake_module.stopwatch);
             });
          });
 
- 
-       
-        
     </script>
 </head>
 <body>
@@ -249,7 +293,8 @@
             <div class="row">
                 <div class="col-md-8">
                     <div id="map" style="border:2.5px solid #000; height: 750px; position: relative;"></div>
-                    <div class="controller">
+                    <h1 class="stopwatch"></h1>
+                    <div class="controller">                        
                         <button class="pauseBtn btn-warning">Pause</button>
                         <button class="startBtn btn-primary">Start</button>
                     </div>
