@@ -76,7 +76,7 @@
                 clearInterval(this.stopwatch);
             },
             reset_time : function(){
-                clearInterval(this.stopwatch);
+                // clearInterval(this.stopwatch);
                 $('.stopwatch').text("00:00:00");
                 this.ms = 0; this.sec = 0; this.min = 0;
             },
@@ -112,7 +112,7 @@
                             snake[i].html.css({"top": snake[i].position.y*distance, "left": snake[i].position.x*distance});
                         }
                     }else{
-                        clearInterval(snake_module.moving_snake);
+                        snake_module.stop_game();
                         snake_module.stop_time();
                         var user_pick = confirm('Game Over\nWanna try again?');
                         if (user_pick == true) {
@@ -124,6 +124,9 @@
                     init_direction = change_direction;
                 }, this.interval);
 
+            },
+            stop_game : function(){
+                clearInterval(this.moving_snake);
             },
             check_direction : function(init_direction, change_direction){
                 if(init_direction != change_direction){
@@ -254,8 +257,8 @@
             });
 
             $('.pauseBtn').on('click', function(){
-                clearInterval(snake_module.moving_snake);
-                clearInterval(snake_module.stopwatch);
+                snake_module.stop_game();
+                snake_module.stop_time();
             });
          });
 
