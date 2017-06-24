@@ -21,7 +21,8 @@
             stopwatch : null,
             moving_snake : null,
             status : true,
-            score : 0,
+            scoring: null,
+            game_score : 0,
             min : 0,
             sec : 0,
             ms : 0,
@@ -46,8 +47,19 @@
                 this.set_map();
                 this.make_food();
                 this.status = true;
-                this.score = 0;
-                $('.game_score').text(this.score);
+            },
+            set_score : function(){
+                this.scoring = setInterval(function(){
+                    snake_module.game_score++;
+                    $('.game_score').text("점수 : " + snake_module.game_score);
+                },100);
+            },
+            stop_scoring : function(){
+                clearInterval(this.scoring);
+            },
+            reset_score : function(){
+                this.game_score = 0;
+                $('.game_score').text("점수 : " + this.game_score);
             },
             set_time : function(){
                 var time = "";
@@ -113,10 +125,12 @@
                     }else{
                         snake_module.stop_game();
                         snake_module.stop_time();
+                        snake_module.stop_scoring();
                         var user_pick = confirm('Game Over\nWanna try again?');
                         if (user_pick == true) {
                             snake_module.reset_map();
                             snake_module.reset_time();
+                            snake_module.reset_score();
                         }
                     }
 
@@ -203,11 +217,9 @@
 
                 //for(var i = 0; i < food.length; i++){
                     if(head.position.x == pray.position.x && head.position.y == pray.position.y){
-                        this.score += 50;
+                        this.game_score += 50;
                         this.add_tail(prev_x, prev_y);                        
                         this.make_food();
-                        $('.game_score').text(this.score);
-                        //alert('snake ate pray');
                     }
                 //}
 
@@ -244,7 +256,7 @@
         $(document).ready(function(){
             snake_module.set_map();
             snake_module.make_food();
-            $('.game_score').text(snake_module.score);
+            $('.game_score').text("점수 : " + snake_module.game_score);
             $('.stopwatch').text("00:00:00");
 
             $('.startBtn').on('click', function(){
@@ -252,12 +264,14 @@
                 if(user_pick == true){
                     snake_module.init_game();
                     snake_module.set_time();
+                    snake_module.set_score();
                 }
             });
 
             $('.pauseBtn').on('click', function(){
                 snake_module.stop_game();
                 snake_module.stop_time();
+                snake_module.stop_scoring();
             });
          });
     </script>
@@ -301,7 +315,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="game_score center"></div>
+                    <div class="game_score"></div>
                 </div>
             </div>
         </div>
