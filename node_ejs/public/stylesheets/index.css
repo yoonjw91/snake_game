@@ -1,0 +1,28 @@
+.head {
+    position: absolute;
+    border: 1px solid red;
+    width: 23px;
+    height: 23px;
+    background-color: black;
+}
+
+.tail {
+    position: absolute;
+    border: 1px solid red;
+    width: 23px;
+    height: 23px;
+}
+
+.pray {
+    position: absolute;
+    border: 1px solid black;
+    width: 23px;
+    height: 23px;
+    background-color: black;
+}
+
+#map {
+    border:2.5px solid #000;
+    height: 750px;
+    position: relative;
+}

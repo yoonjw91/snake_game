@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>home</title>
+    <title><%= title %></title>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="stylesheets/index.css">
     <script
         src="https://code.jquery.com/jquery-2.2.4.min.js"
         integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
@@ -10,10 +11,10 @@
     <script type="text/javascript">
         snake_module = {
             snake : [],
-            head : $('<div />').css({position: "absolute", border: "1px solid red", width: "23px", height: "23px", backgroundColor: "black"}),
-            tail : $('<div />').css({position: "absolute", border: "1px solid red", width: "23px", height: "23px"}),
+            head : $('<div />').addClass('head'),
+            tail : $('<div />').addClass('tail'),
             food : [],
-            pray : $('<div />').css({position: "absolute", border: "1px solid black", width: "23px", height: "23px", backgroundColor: "black"}),
+            pray : $('<div />').addClass('pray'),
             init_direction : "right",
             change_direction : "right",
             distance : 25,
@@ -40,6 +41,9 @@
                 for(var i = 0; i < snake.length; i++){
                     $('#map').append(snake[i].html.css({'top': snake[i].position.y * distance, 'left' : snake[i].position.x * distance}));
                 }
+
+                $('.game_score').text("점수 : " + this.game_score);
+                $('.stopwatch').text("00:00:00");
             },
             reset_map : function(){
                 $('#map').empty();
@@ -126,11 +130,14 @@
                         snake_module.stop_game();
                         snake_module.stop_time();
                         snake_module.stop_scoring();
+
                         var user_pick = confirm('Game Over\nWanna try again?');
                         if (user_pick == true) {
                             snake_module.reset_map();
                             snake_module.reset_time();
                             snake_module.reset_score();
+                            snake_module.delete_food();
+                            snake_module.make_food();
                         }
                     }
 
@@ -162,32 +169,76 @@
                 //return change_direction;
             },
 
-            make_food : function(){
+            make_food : function(index){
+                var flag = index >= 0 ? false : true;
                 var snake = this.snake;
                 var food = this.food;
                 var pray = this.pray;
                 var distance = this.distance;
-                var x = Math.floor(Math.random()*10);
-                var y = Math.floor(Math.random()*10);
 
-                if(food.length > 0){
+                /*if(food.length > 0){
                     food[0].html.css('display','none');
                     food.splice(0,1);
-                }
+                }*/
 
-                for(var i = 0; i < snake.length; i++){
-                    if(snake[i].position.x == x && snake[i].position.y == y){
-                        x = Math.floor(Math.random()*10);
-                        y = Math.floor(Math.random()*10);
-                        i = -1;
+                if(eval(flag)){
+                    while(food.length < 2){
+                        var x = Math.floor(Math.random()*10);
+                        var y = Math.floor(Math.random()*10);
+
+                        for(var i = 0; i < snake.length; i++){
+                            if(snake[i].position.x == x && snake[i].position.y == y){
+                                x = Math.floor(Math.random()*10);
+                                y = Math.floor(Math.random()*10);
+                                i = -1;
+                            }
+                        }
+
+                        if(food.length > 0){
+                            for(var i = 0; i < snake.length; i++){
+                                if(snake[i].position.x == x && snake[i].position.y == y && food[0].position.x == x && food[0].position.y == y){
+                                    x = Math.floor(Math.random()*10);
+                                    y = Math.floor(Math.random()*10);
+                                    i = -1;
+                                }
+                            }
+                        }
+
+                        food.push({html: pray.clone(true), position: {x: x, y: y}});
                     }
-                }
+                    
+                    for(var i = 0; i < food.length; i++){
+                        $('#map').append(food[i].html.css({'top': food[i].position.y*distance, 'left': food[i].position.x*distance}));
+                    }
+                }else{
+                    //food[index].html.css('display', 'none');
+                    food[index].html.remove();
 
-                food.push({html: pray.clone(true), position: {x: x, y: y}});
-                $('#map').append(food[0].html.css({'top': food[0].position.y*distance, 'left': food[0].position.x*distance}));
+                    var x = Math.floor(Math.random()*10);
+                    var y = Math.floor(Math.random()*10);
+
+                    for(var i = 0; i < snake.length; i++){
+                        if(snake[i].position.x == x && snake[i].position.y == y){
+                            x = Math.floor(Math.random()*10);
+                            y = Math.floor(Math.random()*10);
+                            i = -1;
+                        }
+                    }
+
+                    food.splice(index,1);
+                    food.push({html: pray.clone(true), position: {x: x, y: y}});
+                    $('#map').append(food[food.length -1].html.css({'top': food[food.length -1].position.y*distance, 'left': food[food.length -1].position.x*distance}));
+                }
 
             },
-
+            delete_food : function(){
+                if(this.food.length > 0){
+                    for(var i = 0; i < this.food.length; i++){
+                        this.food[i].html.css('display','none');
+                    }
+                    this.food = [];
+                }
+            },
             set_movement : function(change_direction){
                 if(change_direction == "top" || change_direction == "left"){
                     return -1;
@@ -198,7 +249,7 @@
                 var snake = this.snake;
                 var head = snake[0];
                 var food = this.food;
-                var pray = food[0];
+                //var pray = food[0];
                 var prev_x = snake[snake.length-1].position.x;
                 var prev_y = snake[snake.length-1].position.y;
 
@@ -215,13 +266,14 @@
                     }
                 }
 
-                //for(var i = 0; i < food.length; i++){
+                for(var i = 0; i < food.length; i++){
+                    var pray = food[i];
                     if(head.position.x == pray.position.x && head.position.y == pray.position.y){
                         this.game_score += 50;
                         this.add_tail(prev_x, prev_y);                        
-                        this.make_food();
+                        this.make_food(i);
                     }
-                //}
+                }
 
                 if(head.position.x < 0 || head.position.x > 29 || head.position.y < 0 || head.position.y > 29){
                     this.status = false;
@@ -255,9 +307,7 @@
 
         $(document).ready(function(){
             snake_module.set_map();
-            snake_module.make_food();
-            $('.game_score').text("점수 : " + snake_module.game_score);
-            $('.stopwatch').text("00:00:00");
+            snake_module.make_food();      
 
             $('.startBtn').on('click', function(){
                 var user_pick = confirm('게임을 시작하시겠습니까?');
@@ -307,7 +357,7 @@
         <div class="content">
             <div class="row">
                 <div class="col-md-8">
-                    <div id="map" style="border:2.5px solid #000; height: 750px; position: relative;"></div>
+                    <div id="map"></div>
                     <h1 class="stopwatch"></h1>
                     <div class="controller">                        
                         <button class="pauseBtn btn-warning">Pause</button>
